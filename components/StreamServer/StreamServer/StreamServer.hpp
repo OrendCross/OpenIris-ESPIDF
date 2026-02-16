@@ -7,12 +7,15 @@
 #include <StateManager.hpp>
 #include <WebSocketLogger.hpp>
 #include <helpers.hpp>
+#include <ProjectConfig.hpp>
+#include "jpegls_encoder.h"
 #include "esp_camera.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 
 extern WebSocketLogger webSocketLogger;
+extern std::shared_ptr<ProjectConfig> deviceConfig;
 
 namespace StreamHelpers
 {

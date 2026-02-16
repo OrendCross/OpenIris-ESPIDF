@@ -4,6 +4,7 @@
 #include <cstdio>  // for snprintf
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "tusb.h"
 
 static const char* UVC_STREAM_TAG = "[UVC DEVICE]";
 
@@ -42,6 +43,11 @@ extern "C"
 
 // single definition of shared framebuffer storage
 UVCStreamHelpers::fb_t UVCStreamHelpers::s_fb = {};
+
+// JPEG-LS encoder state for UVC stream
+static jpegls_encoder_t* s_uvc_jls_encoder = nullptr;
+static uint8_t* s_uvc_jls_buffer = nullptr;
+static size_t s_uvc_jls_buffer_cap = 0;
 
 static esp_err_t UVCStreamHelpers::camera_start_cb(uvc_format_t format, int width, int height, int rate, void* cb_ctx)
 {
@@ -121,8 +127,71 @@ static uvc_fb_t* UVCStreamHelpers::camera_fb_get_cb(void* cb_ctx)
     }
 
     s_fb.cam_fb_p = cam_fb;
-    s_fb.uvc_fb.buf = cam_fb->buf;
-    s_fb.uvc_fb.len = cam_fb->len;
+
+    // Check if we need JPEG-LS encoding (grayscale frame from camera)
+    if (cam_fb->format == PIXFORMAT_GRAYSCALE && deviceConfig &&
+        deviceConfig->getEncodingMode() == EncodingMode::JPEGLS)
+    {
+        // Lazily initialize JPEG-LS encoder
+        if (!s_uvc_jls_encoder)
+        {
+            s_uvc_jls_encoder = jpegls_encoder_create(cam_fb->width, cam_fb->height);
+            s_uvc_jls_buffer_cap = jpegls_max_encoded_size(cam_fb->width, cam_fb->height);
+            s_uvc_jls_buffer = static_cast<uint8_t*>(malloc(s_uvc_jls_buffer_cap));
+        }
+
+        if (s_uvc_jls_encoder && s_uvc_jls_buffer)
+        {
+            size_t encoded_len = 0;
+            int64_t enc_start = esp_timer_get_time();
+            int ret = jpegls_encode(s_uvc_jls_encoder,
+                                    cam_fb->buf, cam_fb->len,
+                                    s_uvc_jls_buffer, s_uvc_jls_buffer_cap,
+                                    &encoded_len, 2);
+            int64_t enc_us = esp_timer_get_time() - enc_start;
+            if (ret == 0)
+            {
+                s_fb.uvc_fb.buf = s_uvc_jls_buffer;
+                s_fb.uvc_fb.len = encoded_len;
+                static int64_t enc_total_us = 0;
+                static int enc_count = 0;
+                enc_total_us += enc_us;
+                enc_count++;
+                if (enc_count % 100 == 0) {
+                    char log_buf[128];
+                    int log_len = snprintf(log_buf, sizeof(log_buf),
+                        "[JLS] avg %lld us (%lld ms) last %lld us size %u\r\n",
+                        enc_total_us / enc_count, enc_total_us / enc_count / 1000,
+                        enc_us, (unsigned)encoded_len);
+                    tud_cdc_write(log_buf, log_len);
+                    tud_cdc_write_flush();
+                    enc_total_us = 0;
+                    enc_count = 0;
+                }
+            }
+            else
+            {
+                char log_buf[80];
+                int log_len = snprintf(log_buf, sizeof(log_buf),
+                    "[JLS] encode FAILED ret=%d took %lld us\r\n", ret, enc_us);
+                tud_cdc_write(log_buf, log_len);
+                tud_cdc_write_flush();
+                s_fb.uvc_fb.buf = cam_fb->buf;
+                s_fb.uvc_fb.len = cam_fb->len;
+            }
+        }
+        else
+        {
+            s_fb.uvc_fb.buf = cam_fb->buf;
+            s_fb.uvc_fb.len = cam_fb->len;
+        }
+    }
+    else
+    {
+        s_fb.uvc_fb.buf = cam_fb->buf;
+        s_fb.uvc_fb.len = cam_fb->len;
+    }
+
     s_fb.uvc_fb.width = cam_fb->width;
     s_fb.uvc_fb.height = cam_fb->height;
     s_fb.uvc_fb.format = UVC_FORMAT_JPEG;
@@ -137,7 +206,7 @@ static uvc_fb_t* UVCStreamHelpers::camera_fb_get_cb(void* cb_ctx)
         return nullptr;
     }
 
-    // Schedule next frame time (distribute remainder for exact long‑term 60.000 fps)
+    // Schedule next frame time (distribute remainder for exact long-term 60.000 fps)
     rem_acc += rem_us;
     int extra_us = 0;
     if (rem_acc >= target_fps)

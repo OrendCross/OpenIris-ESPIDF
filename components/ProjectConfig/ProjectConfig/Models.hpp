@@ -28,6 +28,12 @@ enum class StreamingMode
     WIFI,
 };
 
+enum class EncodingMode : uint8_t
+{
+  JPEG = 0,
+  JPEGLS = 1,
+};
+
 struct DeviceMode_t : BaseConfigModel
 {
     StreamingMode mode;
@@ -128,37 +134,41 @@ struct CameraConfig_t : BaseConfigModel
 {
     CameraConfig_t(Preferences* pref) : BaseConfigModel(pref) {}
 
-    uint8_t vflip;
-    uint8_t href;
-    uint8_t framesize;
-    uint8_t quality;
-    uint8_t brightness;
+  uint8_t vflip;
+  uint8_t href;
+  uint8_t framesize;
+  uint8_t quality;
+  uint8_t brightness;
+  EncodingMode encoding_mode;
 
-    void load()
-    {
-        this->vflip = this->pref->getInt("vflip", 0);
-        this->href = this->pref->getInt("href", 0);
-        this->framesize = this->pref->getInt("framesize", 5);
-        this->quality = this->pref->getInt("quality", 7);
-        this->brightness = this->pref->getInt("brightness", 2);
-    };
+  void load()
+  {
+    this->vflip = this->pref->getInt("vflip", 0);
+    this->href = this->pref->getInt("href", 0);
+    this->framesize = this->pref->getInt("framesize", 5);
+    this->quality = this->pref->getInt("quality", 7);
+    this->brightness = this->pref->getInt("brightness", 2);
+    this->encoding_mode = static_cast<EncodingMode>(this->pref->getInt("enc_mode", 0));
+  };
 
-    void save() const
-    {
-        this->pref->putInt("vflip", this->vflip);
-        this->pref->putInt("href", this->href);
-        this->pref->putInt("framesize", this->framesize);
-        this->pref->putInt("quality", this->quality);
-        this->pref->putInt("brightness", this->brightness);
-    };
+  void save() const
+  {
+    this->pref->putInt("vflip", this->vflip);
+    this->pref->putInt("href", this->href);
+    this->pref->putInt("framesize", this->framesize);
+    this->pref->putInt("quality", this->quality);
+    this->pref->putInt("brightness", this->brightness);
+    this->pref->putInt("enc_mode", static_cast<int>(this->encoding_mode));
+  };
 
-    std::string toRepresentation()
-    {
-        return Helpers::format_string(
-            "\"camera_config\": {\"vflip\": %d,\"framesize\": %d,\"href\": "
-            "%d,\"quality\": %d,\"brightness\": %d}",
-            this->vflip, this->framesize, this->href, this->quality, this->brightness);
-    };
+  std::string toRepresentation()
+  {
+    return Helpers::format_string(
+        "\"camera_config\": {\"vflip\": %d,\"framesize\": %d,\"href\": "
+        "%d,\"quality\": %d,\"brightness\": %d,\"encoding_mode\": %d}",
+        this->vflip, this->framesize, this->href, this->quality,
+        this->brightness, static_cast<int>(this->encoding_mode));
+  };
 };
 
 // with wifi, we have to work a bit differently

@@ -31,7 +31,7 @@ def get_root_path() -> str:
 def get_boards_root() -> str:
     return os.path.join(get_root_path(), BOARDS_DIR_NAME)
 
-
+2
 def get_config_platform(_parsed_config: dict) -> str:
     # 1:-1 to strip quotes
     return _parsed_config["CONFIG_IDF_TARGET"][1:-1]

@@ -10,7 +10,9 @@
 #include "CommandSchema.hpp"
 #include "DependencyRegistry.hpp"
 
-CommandResult updateCameraCommand(std::shared_ptr<DependencyRegistry> registry, const nlohmann::json& json);
+CommandResult updateCameraCommand(std::shared_ptr<DependencyRegistry> registry, const nlohmann::json &json);
+CommandResult setEncodingModeCommand(std::shared_ptr<DependencyRegistry> registry, const nlohmann::json &json);
+CommandResult getEncodingModeCommand(std::shared_ptr<DependencyRegistry> registry);
 
 #endif
 

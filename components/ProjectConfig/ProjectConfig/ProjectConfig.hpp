@@ -42,10 +42,14 @@ class ProjectConfig
 
     void deleteWifiConfig(const std::string& networkName);
 
-    void setAPWifiConfig(const std::string& ssid, const std::string& password, uint8_t channel);
+    void setAPWifiConfig(const std::string &ssid,
+                         const std::string &password,
+                         uint8_t channel);
     void setWiFiTxPower(uint8_t power);
     void setDeviceMode(StreamingMode deviceMode);
     StreamingMode getDeviceMode();
+    void setEncodingMode(EncodingMode mode);
+    EncodingMode getEncodingMode();
 
    private:
     Preferences* pref;

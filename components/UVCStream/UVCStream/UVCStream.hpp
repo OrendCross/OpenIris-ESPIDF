@@ -14,6 +14,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "usb_device_uvc.h"
+#include "jpegls_encoder.h"
 
 // we need access to the camera manager
 // in order to update the frame settings

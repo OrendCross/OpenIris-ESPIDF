@@ -64,6 +64,14 @@ struct UpdateCameraConfigPayload : BasePayload
     // TODO add more options here
 };
 
-void to_json(nlohmann::json& j, const UpdateCameraConfigPayload& payload);
-void from_json(const nlohmann::json& j, UpdateCameraConfigPayload& payload);
+void to_json(nlohmann::json &j, const UpdateCameraConfigPayload &payload);
+void from_json(const nlohmann::json &j, UpdateCameraConfigPayload &payload);
+
+struct SetEncodingModePayload : BasePayload
+{
+  uint8_t mode; // 0 = JPEG, 1 = JPEGLS
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SetEncodingModePayload, mode)
+
 #endif

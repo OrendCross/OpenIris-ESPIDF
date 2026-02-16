@@ -261,3 +261,15 @@ StreamingMode ProjectConfig::getDeviceMode()
 {
     return this->config.device_mode.mode;
 }
+
+void ProjectConfig::setEncodingMode(const EncodingMode mode)
+{
+    this->config.camera.encoding_mode = mode;
+    this->config.camera.save();
+    ESP_LOGI(CONFIGURATION_TAG, "Set encoding mode to %d", static_cast<int>(mode));
+}
+
+EncodingMode ProjectConfig::getEncodingMode()
+{
+    return this->config.camera.encoding_mode;
+}

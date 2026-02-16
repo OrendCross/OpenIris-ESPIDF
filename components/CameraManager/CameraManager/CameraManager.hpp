@@ -31,6 +31,7 @@ class CameraManager
     int setVFlip(int direction);
     int setHFlip(int direction);
     int setVieWindow(int offsetX, int offsetY, int outputX, int outputY);
+    void setPixelFormat(pixformat_t format);
 
    private:
     void loadConfigData();

@@ -74,13 +74,17 @@ void CameraManager::setupCameraPinout()
         .ledc_timer = LEDC_TIMER_0,
         .ledc_channel = LEDC_CHANNEL_0,
 
-        .pixel_format = PIXFORMAT_JPEG,   // YUV422,GRAYSCALE,RGB565,JPEG
+        .pixel_format = (projectConfig->getEncodingMode() == EncodingMode::JPEGLS)
+                             ? PIXFORMAT_GRAYSCALE
+                             : PIXFORMAT_JPEG,    // GRAYSCALE for JPEG-LS, JPEG for HW encoder
         .frame_size = FRAMESIZE_240X240,  // QQVGA-UXGA, For ESP32, do not use sizes above QVGA when not JPEG. The performance of the ESP32-S series has
                                           // improved a lot, but JPEG mode always gives better frame rates.
 
         .jpeg_quality = 8,  // 0-63, for OV series camera sensors, lower number means higher quality // Below 6 stability problems
         .fb_count = 2,      // When jpeg mode is used, if fb_count more than one, the driver will work in continuous mode.
-        .fb_location = CAMERA_FB_IN_DRAM,
+        .fb_location = (projectConfig->getEncodingMode() == EncodingMode::JPEGLS)
+                            ? CAMERA_FB_IN_PSRAM
+                            : CAMERA_FB_IN_DRAM,
         .grab_mode = CAMERA_GRAB_WHEN_EMPTY,  // was CAMERA_GRAB_LATEST; new mode reduces frame skips at cost of minor latency
     };
 }
@@ -205,11 +209,32 @@ void CameraManager::loadConfigData()
 
 int CameraManager::setCameraResolution(const framesize_t frameSize)
 {
-    if (camera_sensor->pixformat == PIXFORMAT_JPEG)
+    if (camera_sensor->pixformat == PIXFORMAT_JPEG || camera_sensor->pixformat == PIXFORMAT_GRAYSCALE)
     {
         return camera_sensor->set_framesize(camera_sensor, frameSize);
     }
     return -1;
+}
+
+void CameraManager::setPixelFormat(pixformat_t format)
+{
+  ESP_LOGI(CAMERA_MANAGER_TAG, "Switching pixel format to %d", format);
+  esp_camera_deinit();
+
+  config.pixel_format = format;
+  // Grayscale frames are uncompressed and larger - use PSRAM if available
+  if (format == PIXFORMAT_GRAYSCALE) {
+    config.fb_location = CAMERA_FB_IN_PSRAM;
+  } else {
+    config.fb_location = CAMERA_FB_IN_DRAM;
+  }
+
+  esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    ESP_LOGE(CAMERA_MANAGER_TAG, "Camera re-init failed: %s", esp_err_to_name(err));
+    return;
+  }
+  setupCameraSensor();
 }
 
 int CameraManager::setVFlip(const int direction)

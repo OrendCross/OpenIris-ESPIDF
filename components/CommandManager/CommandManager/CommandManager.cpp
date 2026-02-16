@@ -28,67 +28,98 @@ std::unordered_map<std::string, CommandType> commandTypeMap = {
     {"get_led_current", CommandType::GET_LED_CURRENT},
     {"get_battery_status", CommandType::GET_BATTERY_STATUS},
     {"get_who_am_i", CommandType::GET_WHO_AM_I},
+    {"set_encoding_mode", CommandType::SET_ENCODING_MODE},
+    {"get_encoding_mode", CommandType::GET_ENCODING_MODE},
 };
 
 std::function<CommandResult()> CommandManager::createCommand(const CommandType type, const nlohmann::json& json) const
 {
-    switch (type)
-    {
-    case CommandType::PING:
-        return {PingCommand};
-    case CommandType::PAUSE:
-        return [json] { return PauseCommand(json); };
-    case CommandType::UPDATE_OTA_CREDENTIALS:
-        return [this, json] { return updateOTACredentialsCommand(this->registry, json); };
-    case CommandType::SET_WIFI:
-        return [this, json] { return setWiFiCommand(this->registry, json); };
-    case CommandType::UPDATE_WIFI:
-        return [this, json] { return updateWiFiCommand(this->registry, json); };
-    case CommandType::UPDATE_AP_WIFI:
-        return [this, json] { return updateAPWiFiCommand(this->registry, json); };
-    case CommandType::DELETE_NETWORK:
-        return [this, json] { return deleteWiFiCommand(this->registry, json); };
-    case CommandType::SET_MDNS:
-        return [this, json] { return setMDNSCommand(this->registry, json); };
-    case CommandType::GET_MDNS_NAME:
-        return [this] { return getMDNSNameCommand(this->registry); };
-    case CommandType::UPDATE_CAMERA:
-        return [this, json] { return updateCameraCommand(this->registry, json); };
-    case CommandType::GET_CONFIG:
-        return [this] { return getConfigCommand(this->registry); };
-    case CommandType::SAVE_CONFIG:
-        return [this] { return saveConfigCommand(this->registry); };
-    case CommandType::RESET_CONFIG:
-        return [this, json] { return resetConfigCommand(this->registry, json); };
-    case CommandType::RESTART_DEVICE:
-        return restartDeviceCommand;
-    case CommandType::SCAN_NETWORKS:
-        return [this, json] { return scanNetworksCommand(this->registry, json); };
-    case CommandType::START_STREAMING:
-        return startStreamingCommand;
-    case CommandType::GET_WIFI_STATUS:
-        return [this] { return getWiFiStatusCommand(this->registry); };
-    case CommandType::CONNECT_WIFI:
-        return [this] { return connectWiFiCommand(this->registry); };
-    case CommandType::SWITCH_MODE:
-        return [this, json] { return switchModeCommand(this->registry, json); };
-    case CommandType::GET_DEVICE_MODE:
-        return [this] { return getDeviceModeCommand(this->registry); };
-    case CommandType::SET_LED_DUTY_CYCLE:
-        return [this, json] { return updateLEDDutyCycleCommand(this->registry, json); };
-    case CommandType::GET_LED_DUTY_CYCLE:
-        return [this] { return getLEDDutyCycleCommand(this->registry); };
-    case CommandType::GET_SERIAL:
-        return [this] { return getSerialNumberCommand(this->registry); };
-    case CommandType::GET_LED_CURRENT:
-        return [this] { return getLEDCurrentCommand(this->registry); };
-    case CommandType::GET_BATTERY_STATUS:
-        return [this] { return getBatteryStatusCommand(this->registry); };
-    case CommandType::GET_WHO_AM_I:
-        return [this] { return getInfoCommand(this->registry); };
-    default:
-        return nullptr;
-    }
+  switch (type)
+  {
+  case CommandType::PING:
+    return {PingCommand};
+  case CommandType::PAUSE:
+    return [json]
+    { return PauseCommand(json); };
+  case CommandType::UPDATE_OTA_CREDENTIALS:
+    return [this, json]
+    { return updateOTACredentialsCommand(this->registry, json); };
+  case CommandType::SET_WIFI:
+    return [this, json]
+    { return setWiFiCommand(this->registry, json); };
+  case CommandType::UPDATE_WIFI:
+    return [this, json]
+    { return updateWiFiCommand(this->registry, json); };
+  case CommandType::UPDATE_AP_WIFI:
+    return [this, json]
+    { return updateAPWiFiCommand(this->registry, json); };
+  case CommandType::DELETE_NETWORK:
+    return [this, json]
+    { return deleteWiFiCommand(this->registry, json); };
+  case CommandType::SET_MDNS:
+    return [this, json]
+    { return setMDNSCommand(this->registry, json); };
+  case CommandType::GET_MDNS_NAME:
+    return [this]
+    { return getMDNSNameCommand(this->registry); };
+  case CommandType::UPDATE_CAMERA:
+    return [this, json]
+    { return updateCameraCommand(this->registry, json); };
+  case CommandType::GET_CONFIG:
+    return [this]
+    { return getConfigCommand(this->registry); };
+  case CommandType::SAVE_CONFIG:
+    return [this]
+    { return saveConfigCommand(this->registry); };
+  case CommandType::RESET_CONFIG:
+    return [this, json]
+    { return resetConfigCommand(this->registry, json); };
+  case CommandType::RESTART_DEVICE:
+    return restartDeviceCommand;
+  case CommandType::SCAN_NETWORKS:
+    return [this, json]
+    { return scanNetworksCommand(this->registry, json); };
+  case CommandType::START_STREAMING:
+    return startStreamingCommand;
+  case CommandType::GET_WIFI_STATUS:
+    return [this]
+    { return getWiFiStatusCommand(this->registry); };
+  case CommandType::CONNECT_WIFI:
+    return [this]
+    { return connectWiFiCommand(this->registry); };
+  case CommandType::SWITCH_MODE:
+    return [this, json]
+    { return switchModeCommand(this->registry, json); };
+  case CommandType::GET_DEVICE_MODE:
+    return [this]
+    { return getDeviceModeCommand(this->registry); };
+  case CommandType::SET_LED_DUTY_CYCLE:
+    return [this, json]
+    { return updateLEDDutyCycleCommand(this->registry, json); };
+  case CommandType::GET_LED_DUTY_CYCLE:
+    return [this]
+    { return getLEDDutyCycleCommand(this->registry); };
+  case CommandType::GET_SERIAL:
+    return [this]
+    { return getSerialNumberCommand(this->registry); };
+  case CommandType::GET_LED_CURRENT:
+    return [this]
+    { return getLEDCurrentCommand(this->registry); };
+  case CommandType::GET_BATTERY_STATUS:
+    return [this]
+    { return getBatteryStatusCommand(this->registry); };
+  case CommandType::GET_WHO_AM_I:
+    return [this]
+    { return getInfoCommand(this->registry); };
+  case CommandType::SET_ENCODING_MODE:
+    return [this, json]
+    { return setEncodingModeCommand(this->registry, json); };
+  case CommandType::GET_ENCODING_MODE:
+    return [this]
+    { return getEncodingModeCommand(this->registry); };
+  default:
+    return nullptr;
+  }
 }
 
 CommandManagerResponse CommandManager::executeFromJson(const std::string_view json) const
